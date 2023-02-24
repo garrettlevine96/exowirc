@@ -6,6 +6,8 @@ from astropy.stats import median_absolute_deviation, sigma_clip, \
 	sigma_clipped_stats
 import cv2
 
+import matplotlib.pyplot as plt
+
 np.set_printoptions(threshold=np.inf)
 
 from .io_utils import get_science_img_list, load_calib_files, \
@@ -94,6 +96,8 @@ def calibrate_all(raw_dir, calib_dir, dump_dir, science_ranges, dark_ranges,
 
 	covariates = {'bkgs': [], 'bjd': [], 'AIRMASS': []}
 
+	# this loop written to account for discontinuous
+	# ranges of science image numbers
 	for i, science_range in enumerate(science_ranges):
 		science_range = [science_range]
 		to_calibrate = get_science_img_list(science_range)
@@ -146,19 +150,33 @@ def calibrate_sequence(raw_dir, calib_dir, science_sequence, flat, dark,
             Setting the flag subtracts the median value from each row
             or column in each quadrant. Default is False.
 	style : string, optional
-			Prefix convention used in naming the image. Usually 'image' or 'wirc' unless otherwise specified during observations
+			Prefix convention used in naming the image. Usually 'image'
+			or 'wirc' unless otherwise specified during observations
 	background_mode : string or None, optional
-			Either None, 'median', 'global', or 'helium' indicating the background subtraction procedure. Using 'median' subtracts a sigma-clipped median from the whole image, 'global' subtracts a calibrated background frame from each image, and 'helium' subtracts a calibrated background frame combined with a multicomponent frame to capture the unique helium filter structure.
+			Either None, 'median', 'global', or 'helium' indicating
+			the background subtraction procedure. Using 'median'
+			subtracts a sigma-clipped median from the whole image,
+			'global' subtracts a calibrated background frame from
+			each image, and 'helium' subtracts a calibrated
+			background frame combined with a multicomponent frame
+			to capture the unique helium filter structure.
 	correct_nonlinearity : boolean, optional
-			Flag that indicates whether or not to do nonlinearity correction on the image data (in the case of bright targets approaching the saturation limit of the detector)
+			Flag that indicates whether or not to do nonlinearity
+			correction on the image data (in the case of bright
+			targets approaching the saturation limit of the detector)
 	nonlinearity_fname : string, optional
 			Path to the file name with nonlinearity array, by default None
     mcf : numpy.ndarray, optional
-            2048 x 2048 numpy array representing radial distances from the filter center of the helium arc, used for correcting brightness variation due to the helium arc structure, by default None
+            2048 x 2048 numpy array representing radial distances from the
+			filter center of the helium arc, used for correcting brightness
+			variation due to the helium arc structure, by default None.
     covariates : dictionary, optional
-            Dictionary containing the covariate types as keys with empty values to be filled, by default None
+            Dictionary containing the covariate types as keys with empty
+			values to be filled, by default None
 	mask_channels : list, optional
-			A list of channels on the detector that should be masked. Number convention to specify which oof the 8 channels per quadrant on the detector are defined in the mask_bad_channels function
+			A list of channels on the detector that should be masked. 
+			Number convention to specify which oof the 8 channels per
+			quadrant on the detector are defined in the mask_bad_channels function.
 
 	Returns
 	--------------
@@ -167,6 +185,7 @@ def calibrate_sequence(raw_dir, calib_dir, science_sequence, flat, dark,
 	"""
 	flat, dark, bp, hp, nonlinearity_array, correct_nonlinearity = \
 		load_calib_files(flat,dark,bp,hp,nonlinearity_fname)
+	
 	if bkg is not None:
 		with fits.open(bkg) as hdul:
 			background_frame = hdul[0].data
@@ -264,7 +283,8 @@ def check_saved_background(imname):
 
 def make_darks_and_flats(dirname, calib_dir, dark_seqs, dark_for_flat_seq,
 	flat_seq, style, remake_darks_and_flats = True):
-	"""Creates combined dark, dark for flat, and combined flat for calibrating the raw science images.
+	"""Creates combined dark, dark for flat, and combined flat for calibrating
+	the raw science images.
 	
 	Parameters
 	-------------
@@ -273,15 +293,24 @@ def make_darks_and_flats(dirname, calib_dir, dark_seqs, dark_for_flat_seq,
 	calib_dir : string
 			Path to the directory in which the dark and flat image data will be stored
 	dark_seqs : list of tuples
-			List of (int1, int2) tuples. List is usually of length 1 if all raw images were taken with the [*same exposure time*] in one setting. List length may be longer than 1 if the raw images were taken with different [exposure times] in multiple sequences and settings. Each tuple defines a single linear sequence of darks from which a combined dark will be constructed
+			List of (int1, int2) tuples. List is usually of length 1 if all
+			raw images were taken with the [*same exposure time*] in one
+			setting. List length may be longer than 1 if the raw images were
+			taken with different [exposure times] in multiple sequences and
+			settings. Each tuple defines a single linear sequence of darks
+			from which a combined dark will be constructed.
 	dark_for_flat_seq : tuple of ints
-			Tuple (int1, int2) that defines a linear sequence of darks from which a combined dark will be created to correct the flat
+			Tuple (int1, int2) that defines a linear sequence of darks from
+			which a combined dark will be created to correct the flat.
 	flat_seq : tuple of ints
-			Tuple (int1, int2) that defines a linear sequence of flat from which a combined flat will be created
+			Tuple (int1, int2) that defines a linear sequence of flat from
+			which a combined flat will be created.
 	style : string, optional
-			Prefix convention used in naming the image. Usually 'image' or 'wirc' unless otherwise specified during observations
+			Prefix convention used in naming the image. Usually 'image' or
+			'wirc' unless otherwise specified during observations.
 	remake_darks_and_flats : boolean, optional
-			Flag that indicates whether or not to remake the combined darks and flats. Default is True
+			Flag that indicates whether or not to remake the combined darks
+			and flats. Default is True.
 
 	Returns
 	--------------
@@ -329,7 +358,8 @@ def make_combined_image(dirname, calib_dir, seq_start, seq_end,
 	dirname : string
 			Path to the directory in which raw frames are stored
 	calib_dir : string
-			Path to the directory you want combined frame saved (this should be the same as the calibrated image directory)
+			Path to the directory you want combined frame saved (this
+			should be the same as the calibrated image directory).
 	seq_start : int
 			Starting image number for the sequence
 	seq_end : int
@@ -337,9 +367,11 @@ def make_combined_image(dirname, calib_dir, seq_start, seq_end,
 	calibration : string
 			Either 'dark' or 'flat'
 	dark_for_flat_name : string
-			Path to the dark used to correct flat-fielding images; must not be None if making a flat
+			Path to the dark used to correct flat-fielding images;
+			must not be None if making a flat.
 	style : string, optional
-			The prefix for the image number. usually 'image' or 'wirc' unless otherwise specified during observations. 
+			The prefix for the image number. usually 'image' or 'wirc'
+			unless otherwise specified during observations. 
 
 	Returns
 	--------------
@@ -386,7 +418,9 @@ def make_combined_image(dirname, calib_dir, seq_start, seq_end,
 
 def get_hot_px(dark_stack, sig_hot_pix = 5):
 	"""
-	Identify pixel values that are more than sig_hot_pix away from the median and then mask them (turn them into NAN with sigma clipping). Originally implemented by the WIRC+Pol team
+	Identify pixel values that are more than sig_hot_pix away from the median
+	and then mask them (turn them into NAN with sigma clipping). Originally
+	implemented by the WIRC+Pol team.
 
 	Parameters
 	--------------------
@@ -398,7 +432,8 @@ def get_hot_px(dark_stack, sig_hot_pix = 5):
 	Returns
 	--------------------
 	numpy array of booleans
-			Each boolean value corresponds to a pixel in the 2048x2048 array. 0 indicates a good pixel, 1 indicates a hot pixel
+			Each boolean value corresponds to a pixel in the 2048x2048 array.
+			0 indicates a good pixel, 1 indicates a hot pixel.
 	"""
 
 	MAD = median_absolute_deviation(dark_stack, axis = 2)  
@@ -407,19 +442,23 @@ def get_hot_px(dark_stack, sig_hot_pix = 5):
 
 def stddevFilter(img, box_size):
 	"""
-	Compute the local standard deviation of the  pixel count in an image in a moving box of given size. Originally implemented by the WIRC+Pol team (stackoverflow 28931265)
+	Compute the local standard deviation of the pixel count in an image in a
+	moving box of given size. Originally implemented by the WIRC+Pol team
+	(stackoverflow 28931265)
 
 	Parameters
 	--------------------
 	img : numpy.ndarray of floats
 			2048 x 2048 2D image array of pixel counts
 	box_size : int
-			Side length of a box for the moving median across the image used for calculating the local standard deviation
+			Side length of a box for the moving median across the image used
+			for calculating the local standard deviation.
 
 	Returns
 	--------------------
 	float
-			Standard deviation of the pixel value from the median value within the moving box of an image
+			Standard deviation of the pixel value from the median value within
+			the moving box of an image.
 	"""
 	wmean, wsqrmean = (cv2.boxFilter(x, -1, (box_size, box_size), 
 		borderType=cv2.BORDER_REFLECT) for x in (img, img*img))
@@ -459,7 +498,8 @@ def get_bad_px(flat, local_sig_bad_pix = 3, global_sig_bad_pix = 9,
 
 def clean_bad_pix(image, bad_px_map, replacement_box = 5):
 	"""
-	Takes input image data and cleans any bad pixels in the bad pixel map by turning them into the median of their neighbors
+	Takes input image data and cleans any bad pixels in the bad pixel map by
+	turning them into the median of their neighbors.
 	Originally implemented by WIRC+Pol team
 
 	Parameters
@@ -467,14 +507,19 @@ def clean_bad_pix(image, bad_px_map, replacement_box = 5):
 	image : numpy.ndarray of floats
 			2D array of floats containing data of the .fits file
 	bad_px_map : numpy.ndarray of booleans
-			Boolean flag for each pixel indicating whether or not the pixel is bad, i.e. broken
+			Boolean flag for each pixel indicating whether or not the
+			pixel is bad, i.e. broken.
 	replacement_box : int, optional
-			Box size around which we use to replace the bad pixel so if you have a bad pixel, then we take a box of 5 pix by 5 pix (by default) and take the avg of those to replace the bad pixel with
+			Box size around which we use to replace the bad pixel
+			so if you have a bad pixel, then we take a box of
+			5x5 px (by default) and take the avg of those to 
+			replace the bad pixel with.
 
 	Returns
 	-------
 	numpy.ndarray of floats
-			masked 2D array of floats containing data of the .fits file, where bad pixels are masked
+			masked 2D array of floats containing data of the .fits
+			file, where bad pixels are masked.
 	"""
 	bad_px_map = np.logical_or(bad_px_map, image <= 0)
 	bad_px_map = np.logical_or(bad_px_map, ~np.isfinite(image))
@@ -497,29 +542,42 @@ def make_calibrated_bkg_image(data_dir, calib_dir, bkg_seq, dark_ranges,
 	data_dir : string
 			Path to the data directory
 	calib_dir : string
-			Path to the calibrated directory in which the calibrated background image will be stored
+			Path to the calibrated directory in which the calibrated 
+			background image will be stored
 	bkg_seq : list of tuples
-			List of (int1, int2) tuples corresponding to the starting and ending background image numbers used to construct background frames
+			List of (int1, int2) tuples corresponding to the starting 
+			and ending background image numbers used to construct 
+			background frames
 	dark_ranges : list of tuples
-			List of (int1, int2) tuples corresponding to starting and ending image numbers of the dark image sequence(s)
+			List of (int1, int2) tuples corresponding to starting and ending
+			image numbers of the dark image sequence(s)
 	dark_for_flat_range : list of tuples
-			List of (int1, int2) tuples corresponding to starting and ending image numbers of the dark image sequence(s) to be used for the flat sequences. 
+			List of (int1, int2) tuples corresponding to starting and ending
+			image numbers of the dark image sequence(s) to be used for the
+			flat sequences. 
 	flat_range : tuple of ints
-			Tuple (int1, int2) corresponding to starting and ending image numbers of the flat image sequence.
+			Tuple (int1, int2) corresponding to starting and ending image
+			numbers of the flat image sequence.
 	naming_style : string, optional
-			Prefix convention used in naming the image, by default 'wirc', now more commonly 'image'
+			Prefix convention used in naming the image, by default 'wirc',
+			now more commonly 'image'
 	nonlinearity_fname : string, optional
 			Path to the file name with nonlinearity array, by default None
 	sigma_lower : int, optional
-			Sigma floor to be clipped where outliers are removed from the sky background frame, by default 5
+			Sigma floor to be clipped where outliers are removed from the
+			sky background frame, by default 5
 	sigma_upper : int, optional
-			Sigma ceiling to be clipped where outliers are removed from the sky background frame, by default 3
+			Sigma ceiling to be clipped where outliers are removed from the
+			sky background frame, by default 3
 	plot : bool, optional
-			Flag that indicates whether or not to plot all the individual background frames, by default False
+			Flag that indicates whether or not to plot all the individual
+			background frames, by default False
 	remake_bkg : bool, optional
-			Flag that indicates whether or not to remake the sky background image, by default False
+			Flag that indicates whether or not to remake the sky background
+			image, by default False
 	remake_darks_and_flats : bool, optional
-			Flag that indicates whether or not to remake the darks and flats, by default False
+			Flag that indicates whether or not to remake the darks and
+			flats, by default False
 
 	Returns
 	--------------------
@@ -561,7 +619,8 @@ def make_calibrated_bkg_image(data_dir, calib_dir, bkg_seq, dark_ranges,
 			sigma_upper = sigma_upper)
 		if plot:
 			plt.figure(figsize = (8,8))
-			plt.imshow(clipped, origin = 'lower', vmin = 0, vmax = 70e3, cmap = 'Blues')
+			plt.imshow(clipped, origin = 'lower',
+	      		vmin = 0, vmax = 70e3, cmap = 'Blues')
 			plt.show()
 		if i == 0:
 			med_val = np.nanmedian(clipped.flatten())
@@ -580,7 +639,8 @@ def make_calibrated_bkg_image(data_dir, calib_dir, bkg_seq, dark_ranges,
 
 def get_bjd(header):
 	"""
-	Get the UT timestamp of the image from the image header and return it as a BJD time.
+	Get the UT timestamp of the image from the image header and return
+	it as a BJD time.
 
 	Parameters
 	----------
@@ -609,36 +669,53 @@ def calibrate_image(im_name, flat, dark, bp, hp, correct_nonlinearity = False,
 	background_frame = None, multicomponent_frame = None,
 	covariate_dict = None, mask_channels = []):
 	"""
-	Helper function for calibrate_sequence() to calibrate an individual raw science image.
+	Helper function for calibrate_sequence() to calibrate an
+	individual raw science image.
 
 	Parameters
 	--------------------
 	im_name : string
 			name of the raw science image
 	flat : string
-			Path to the combined flat that will be used to calibrate the science sequence
+			Path to the combined flat that will be used to calibrate the
+			science sequence
 	dark : string
-			Path to the combined dark that will be used to calibrate the science sequence
+			Path to the combined dark that will be used to calibrate the
+			science sequence
 	bp : string
-			Path to the bad pixel file that will be used to calibrate the science sequence
+			Path to the bad pixel file that will be used to calibrate the
+			science sequence
 	hp : string
-			Path to the hot pixel file that will be used to calibrate the science sequence
+			Path to the hot pixel file that will be used to calibrate the
+			science sequence
 	correct_nonlinearity : bool, optional
-			Flag indicating whether nonlinearity array calibration is needed due to the presence of very bright/saturated objects/stars in the image, by default False
+			Flag indicating whether nonlinearity array calibration is needed
+			due to the presence of very bright/saturated objects/stars in
+			the image, by default False
 	nonlinearity_array : array, optional
-			The array storing coefficients for the nonlinearity correction, by default None
+			The array storing coefficients for the nonlinearity correction,
+			by default None
 	destripe : bool, optional
-			Flag indicating if the detector should be destriped (setting the flag subtracts the median value from each row or column in each quadrant), by default False.
+			Flag indicating if the detector should be destriped (setting
+			the flag subtracts the median value from each row or column
+			in each quadrant), by default False.
 	background_mode : string, optional
-			'median', 'global', or 'helium', indicating the type of the sky background subtraction, by default None
+			'median', 'global', or 'helium', indicating the type of the
+			sky background subtraction, by default None
 	background_fname : string, optional
-			Path to the filename for the sky background image, by default None
+			Path to the filename for the sky background image,
+			by default None
 	multicomponent_frame : numpy.ndarray, optional
-			2048 x 2048 numpy array representing radial distances from the filter center of the helium arc, used for correcting brightness variation due to the helium arc structure, by default None
+			2048 x 2048 numpy array representing radial distances from the
+			filter center of the helium arc, used for correcting brightness
+			variation due to the helium arc structure, by default None
 	covariate_dict : dictionary, optional
-			Dictionary containing the covariate types as keys with empty values to be filled, by default None
+			Dictionary containing the covariate types as keys with empty
+			values to be filled, by default None
 	mask_channels : list, optional
-			A list of channels on the detector that should be masked. Number convention to specify which oof the 8 channels per quadrant on the detector are defined in the mask_bad_channels function
+			A list of channels on the detector that should be masked.
+			Number convention to specify which oof the 8 channels per quadrant
+			on the detector are defined in the mask_bad_channels function.
 
 
 	Returns
@@ -698,7 +775,9 @@ def calibrate_image(im_name, flat, dark, bp, hp, correct_nonlinearity = False,
 	return cleaned, covariate_dict
 
 def mask_bad_channels(cleaned, to_mask):
-	"""Mask out any bad channel in the pixel array by turning all pixel counts in the malfunctioning channel into NaN. Ordering of the channels is as follows:
+	"""Mask out any bad channel in the pixel array by turning all
+	pixel counts in the malfunctioning channel into NaN. Ordering
+	of the channels is as follows:
 
 	Bottom left quad, bottom to top = 0-7
 	Top right, bottom to top = 8-15
@@ -710,7 +789,8 @@ def mask_bad_channels(cleaned, to_mask):
 	Parameters
 	-----------------
 	cleaned : numpy.ndarray
-			2048 x 2048 corrected science image that has been dark subtracted, flat fielded, bad/hot pixels removed
+			2048 x 2048 corrected science image that has been dark
+			subtracted, flat fielded, bad/hot pixels removed
 	to_mask : array of integers
 			each integer corresponds to the channel to be masked
 
@@ -734,21 +814,26 @@ def mask_bad_channels(cleaned, to_mask):
 
 def helium_background_subtraction(cleaned, background_frame,
 	multicomponent_frame):
-	"""Remove the radial arc and sky background effect that is present in helium images
+	"""Remove the radial arc and sky background effect that is present
+	in helium images
 
 	Parameters
 	--------------------
 	cleaned : numpy.ndarray
-			2048 x 2048 corrected science image array that are dark and flat corrected and hot-pixel and bad-pixel removed
+			2048 x 2048 corrected science image array that are dark and
+			flat corrected and hot-pixel and bad-pixel removed
 	background_frame : numpy.ndarray
-			Data of the background sky image used for calibrating for sky background brightness and structure
+			Data of the background sky image used for calibrating for
+			sky background brightness and structure
 	multicomponent_frame : numpy.ndarray
-			Special background frame used for reducing the data taken with helium filter
+			Special background frame used for reducing the data taken
+			with helium filter
 
 	Returns
 	--------------------
 	numpy.ndarray
-			Corrected science images adjusted by background frame and multicomponent background frame
+			Corrected science images adjusted by background frame and
+			multicomponent background frame
 	"""
 	comps = np.unique(multicomponent_frame)
 	img_meds = [sigma_clipped_stats(
@@ -770,23 +855,29 @@ def helium_background_subtraction(cleaned, background_frame,
 	
 def destripe_image(image, sigma = 3, iters=5):
 	"""
-	Destripe the detector by subtracting the median of each row/column from each quadrant. This works best after subtracting a background sky image.
+	Destripe the detector by subtracting the median of each row/column
+	from each quadrant. This works best after subtracting a
+	background sky image.
 
 	Originally implemented by the WIRC+Pol team; modified by Shreyas
 
 	Parameters
 	--------------------
 	image : array of floats
-			Array of pixel data corresponding to brightness values of the science image before the destriping
+			Array of pixel data corresponding to brightness values of the
+			science image before the destriping
 	sigma : int, optional
-			Sigma floor to be clipped where outliers are removed from the sky background, by default 3
+			Sigma floor to be clipped where outliers are removed from the
+			sky background, by default 3
 	iters : int, optional
-			Number of iterations to remove the striping artifacts from the detector, by default 5
+			Number of iterations to remove the striping artifacts from the
+			detector, by default 5
 
 	Returns
 	--------------------
 	numpy.ndarray
-			Destripped science image where the striping effects of the detector are removed.
+			Destripped science image where the striping effects of the
+			detector are removed.
 	"""
 
 	quads = []
@@ -816,7 +907,8 @@ def destripe_image(image, sigma = 3, iters=5):
 
 def nonlinearity_correction(image, header, nonlinearity_arr):
 	"""
-	Correct an image whose pixel values have been skewed by a very bright target(s) that over-saturates the detector
+	Correct an image whose pixel values have been skewed by a very bright
+	target(s) that over-saturates the detector.
 
 	Parameters
 	--------------------
@@ -825,7 +917,8 @@ def nonlinearity_correction(image, header, nonlinearity_arr):
 	header : astropy.io.fits.header.Header
 			Header of the fits file, containing metadata of the image
 	nonlinearity_arr : array of float
-			2D numpy array containing coefficients for the quadratic nonlinearity correction
+			2D numpy array containing coefficients for the quadratic
+			nonlinearity correction
 
 	Returns
 	--------------------
@@ -842,14 +935,16 @@ def nonlinearity_correction(image, header, nonlinearity_arr):
 
 def construct_multicomponent_frame(calib_dir, dump_dir, rstepsize = 10):
 	"""
-	Create multicomponent frame for removing the arc-effect that appears in helium-background images.
+	Create multicomponent frame for removing the arc-effect that appears
+	in helium-background images.
 
 	Parameters
 	--------------------
 	calib_dir : string
 			Path to the data directory
 	dump_dir : string
-			Path to directory in which the multicomponent framed background will be stored
+			Path to directory in which the multicomponent framed background
+			will be stored
 	rstepsize : int, optional
 			Radial step size in pixels across the detector, by default 10
 
@@ -873,7 +968,8 @@ def construct_multicomponent_frame(calib_dir, dump_dir, rstepsize = 10):
 	
 def dist(p1, p2):
 	"""
-	Calculate the radial distance bwteeen two point coordinates p1 and p2 that each have x and y coordinates.
+	Calculate the radial distance bwteeen two point coordinates p1 and p2
+	that each have x and y coordinates.
 
 	Parameters
 	--------------------

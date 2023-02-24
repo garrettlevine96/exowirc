@@ -482,25 +482,34 @@ def gen_summary(dump_dir, trace, phase, ldc_val, gp = False,
     plot_nominal = False, joint = 1, fit_tess = False, 
     fixed_jitter = None, tess_t0_prior = None):
     """
-    Generates a csv table with summary information for all the parameters of the fit.
+    Generates a csv table with summary information for all the
+    parameters of the fit.
 
     Parameters
     ----------
     dump_dir : str
-        Path to directory in which the saved covariates, background values, pickled raw photometry arrays, and fit summary data arrer stored.
+        Path to directory in which the saved covariates, background values,
+        pickled raw photometry arrays, and fit summary data arrer stored.
     trace : arviz.data.inference_data.InferenceData
-        Information on the trace of all fitted parameters used in the model sampling, including the posterior values, log_likelihood, sample_stats, and observed_data.
+        Information on the trace of all fitted parameters used in the model
+        sampling, including the posterior values, log_likelihood,
+        sample_stats, and observed_data.
     phase : float
-        The phase of the event to be modeled in the light curve. Typically 'primary', but for secondary eclipse could be 'secondary'.
+        The phase of the event to be modeled in the light curve.
+        Typically 'primary', but for secondary eclipse could be 'secondary'.
     ldc_val : list, optional
-        If the limb darkening paramaters are already known with high confidence, they can be set here and will not be included in the fit.
+        If the limb darkening paramaters are already known with
+        high confidence, they can be set here and will not
+        be included in the fit.
     gp : bool, optional
-        Whether or not to include a gp in the light curve fit. The default is False.
+        Whether or not to include a gp in the light curve fit.
+        The default is False.
 
     Returns
     -------
     summary : pandas.core.frame.DataFrame
-        pandas dataFrame containing summary information on the fit parameter distributions.
+        pandas dataFrame containing summary information on the
+        fit parameter distributions.
     varnames : list
         List of strings for all the variable names included in the fit.
 
