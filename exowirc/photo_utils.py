@@ -423,9 +423,11 @@ def perform_photometry(calib_dir, dump_dir, img_dir, science_ranges,
 	max_lengthscale = ann_rads[1]
 	if target_and_compars is None:  
 		sources = find_sources(finding_frame, fwhm = finding_fwhm, sigma_threshold = source_detection_sigma) 
-		if sources is None:
+		print('sources', sources)
+        if sources is None:
 			print("NO SOURCES FOUND!!") 
 		source_ind_temp = find_my_source(sources, target_coords)
+        print(source_ind_temp)
 		sources = clean_sources(sources, max_lengthscale, bad_channel = bad_channel)
 		source_ind = find_my_source(sources, target_coords)
 		plot_sources(img_dir, finding_frame, sources, finding_fwhm, ann_rads)
