@@ -16,7 +16,14 @@ def calibrate_all(raw_dir, calib_dir, dump_dir, science_ranges, dark_ranges,
 	background_mode = None, bkg_filename = None,
 	correct_nonlinearity = False, remake_darks_and_flats = False,
 	nonlinearity_fname = None, mask_channels = []):
-	"""Creates a sequence of science images by calibrating raw images with the dark image data ("darks") and the flat image data ("flats"). The darks remove ambient thermal noise. The flats correct for the varying sensitivity of the pixels accross the detector. Dead pixels and hot pixels are also removed. The resulting calibrated science images are stored inside the calib folder, and metadata of the covariates, which are objects and conditions may affect the stellar brightness when images were taken, are stored inside the dump directory along with the pickled photometry.
+	"""Creates a sequence of science images by calibrating raw images with
+    the dark image data ("darks") and the flat image data ("flats"). The darks
+    remove ambient thermal noise. The flats correct for the varying
+    sensitivity of the pixels accross the detector. Dead pixels and hot pixels
+    are also removed. The resulting calibrated science images are stored
+    inside the calib folder, and metadata of the covariates, which are objects
+    and conditions may affect the stellar brightness when images were taken,
+    are stored inside the dump directory along with the pickled photometry.
 
 	Parameters
 	------------
@@ -25,31 +32,52 @@ def calibrate_all(raw_dir, calib_dir, dump_dir, science_ranges, dark_ranges,
 	calib_dir : string
 			Path to the directory in which the calibrated image data will be stored
 	dump_dir : string
-			Path to directory in which the saved covariates background values and pickled raw photometry values will be stored
+			Path to directory in which the saved covariates background values
+            and pickled raw photometry values will be stored
 	science_ranges : list of tuples
-			A list of tuples (int1, int2) where int1 and int2 are the image numbers for a linear sequence of raw science images to be corrected. 
+			A list of tuples (int1, int2) where int1 and int2 are the
+            image numbers for a linear sequence of raw science images
+            to be corrected. 
 	dark_ranges : list of tuples
-			List of (int1, int2) tuples corresponding to starting and ending image numbers of the dark image sequence(s)
+			List of (int1, int2) tuples corresponding to starting and
+            ending image numbers of the dark image sequence(s)
 	dark_for_flat_range : list of tuples
-			List of (int1, int2) tuples corresponding to starting and ending image numbers of the dark image sequence(s) to be used for the flat sequences. 
+			List of (int1, int2) tuples corresponding to starting and ending
+            image numbers of the dark image sequence(s) to be used for
+            the flat sequences. 
 	flat_range : tuple of ints
-			Tuple (int1, int2) corresponding to starting and ending image numbers of the flat image sequence(s).
+			Tuple (int1, int2) corresponding to starting and ending image
+            numbers of the flat image sequence(s).
 	destripe : boolean, optional
-			Flag that indicates whether raw images should be 'destriped'. The four quadrants of the telescope detector produce a striping effect on the image output. Setting the flag subtracts the median value from each row or column in each quadrant.
+			Flag that indicates whether raw images should be 'destriped'.
+            The four quadrants of the telescope detector produce a striping
+            effect on the image output. Setting the flag subtracts the median
+            value from each row or column in each quadrant.
 	style : string, optional
-			Prefix convention used in naming the image file. Usually 'image' or 'wirc' unless otherwise specified during observations
+			Prefix convention used in naming the image file. Usually 'image'
+            or 'wirc' unless otherwise specified during observations
 	background_mode : string or None, optional
-			Either None, 'median', 'global', or 'helium' indicating the background subtraction procedure. 'median' subtracts a sigma-clipped median from the whole image, 'global' subtracts a calibrated background frame from each image, and 'helium' subtracts a calibrated background frame combined with ta multicomponent frame to capture the unique helium filter structure.
+			Either None, 'median', 'global', or 'helium' indicating the
+            background subtraction procedure. Using 'median' subtracts a
+            sigma-clipped median from the whole image, 'global' subtracts
+            a calibrated background frame from each image, and 'helium'
+            subtracts a calibrated background frame combined with a
+            multicomponent frame to capture the unique helium filter structure.
 	bkg_filename : string, optional
 			Path to the reduced sky background frame
 	correct_nonlinearity : boolean, optional
-			Flag that indicates whether or not to do nonlinearity correction on the image data (in the case of bright targets approaching the saturation limit of the detector)
+			Flag that indicates whether or not to do nonlinearity correction
+            on the image data (in the case of bright targets approaching
+            the saturation limit of the detector)
 	remake_darks_and_flats : boolean, optional
 			Flag that indicates whether or not to remake the combined darks and flats
 	nonlinearity_fname : string or None, optional
-			Path to the file with the nonlinearity correction coefficients (a 2048x2048 numpy array with nonlinearity coefficients per pixel)
+			Path to the file with the nonlinearity correction coefficients
+            (a 2048x2048 numpy array with nonlinearity coefficients per pixel)
 	mask_channels : list, optional
-			A list of channels on the detector that should be masked. Number convention to specify which oof the 8 channels per quadrant on the detector are defined in the mask_bad_channels function
+			A list of channels on the detector that should be masked.
+            Number convention to specify which oof the 8 channels per
+            quadrant on the detector are defined in the mask_bad_channels function
 	"""
 	assert (len(science_ranges) == len(dark_ranges)) or \
 		(len(dark_ranges) == 1)
@@ -83,10 +111,11 @@ def calibrate_all(raw_dir, calib_dir, dump_dir, science_ranges, dark_ranges,
 
 	print("CALIBRATION COMPLETE")
 
-def calibrate_sequence(raw_dir, calib_dir, science_sequence, flat, dark, bp, hp,
-	bkg, destripe, style, background_mode, correct_nonlinearity,
+def calibrate_sequence(raw_dir, calib_dir, science_sequence, flat, dark,
+    bp, hp, bkg, destripe, style, background_mode, correct_nonlinearity,
 	nonlinearity_fname, mcf, covariates, mask_channels):
-	"""Calibrates all the raw science sequence images, and returns an array of scalar values for each of the specified covariates in each image
+	"""Calibrates all the raw science sequence images, and returns an 
+    array of scalar values for each of the specified covariates in each image.
 	
 	Parameters
 	------------
@@ -95,23 +124,31 @@ def calibrate_sequence(raw_dir, calib_dir, science_sequence, flat, dark, bp, hp,
 	calib_dir : string
 			Path to the directory into which the calibrated data will be stored
 	science_sequence : tuple
-			A  tuple (int1, int2) where int1 and int2 are the image numbers for a linear sequence of raw science images to be corrected. 
+			A tuple (int1, int2) where int1 and int2 are the image numbers
+            for a linear sequence of raw science images to be corrected. 
 	flat : string
-			Path to the combined flat that will be used to calibrate the science sequence
+			Path to the combined flat that will be used to
+            calibrate the science sequence
 	dark : string
-			Path to the combined dark that will be used to calibrate the science sequence
+			Path to the combined dark that will be used to
+            calibrate the science sequence
 	bp : string
-			path to the bad pixel file that will be used to calibrate the science sequence
+			path to the bad pixel file that will be used to
+            calibrate the science sequence
 	hp : string
-			path to the hot pixel file that will be used to calibrate the science sequence
+			path to the hot pixel file that will be used to 
+            calibrate the science sequence
 	bkg : string or None
-			Path to the sky background file that will be used to calibrate the science sequence
+			Path to the sky background file that will be used to
+            calibrate the science sequence
 	destripe : boolean, optional
-			Flag that indicates whether raw images should be 'destriped'. Setting the flag subtracts the median value from each row or column in each quadrant. Default is False.
+			Flag that indicates whether raw images should be 'destriped'.
+            Setting the flag subtracts the median value from each row
+            or column in each quadrant. Default is False.
 	style : string, optional
 			Prefix convention used in naming the image. Usually 'image' or 'wirc' unless otherwise specified during observations
 	background_mode : string or None, optional
-			Either None, 'median', 'global', or 'helium' indicating the background subtraction procedure. 'median' subtracts a sigma-clipped median from the whole image, 'global' subtracts a calibrated background frame from each image, and 'helium' subtracts a calibrated background frame combined with a multicomponent frame to capture the unique helium filter structure.
+			Either None, 'median', 'global', or 'helium' indicating the background subtraction procedure. Using 'median' subtracts a sigma-clipped median from the whole image, 'global' subtracts a calibrated background frame from each image, and 'helium' subtracts a calibrated background frame combined with a multicomponent frame to capture the unique helium filter structure.
 	correct_nonlinearity : boolean, optional
 			Flag that indicates whether or not to do nonlinearity correction on the image data (in the case of bright targets approaching the saturation limit of the detector)
 	nonlinearity_fname : string, optional
