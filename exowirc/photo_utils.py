@@ -48,11 +48,14 @@ def accurate_cent(data, xc, yc, radius=3.0, max_iter=100, max_pos_error=1.e-2):
 	yc : float
 			Initial guess at the y coordinate of the centroid
 	radius : float, optional
-			Pixel radius from the initial guess centroid that the calculated centroid is expected to reside on the image, default is 3.
+			Pixel radius from the initial guess centroid that the calculated centroid 
+			is expected to reside on the image, default is 3.
 	max_iter : int, optional
-			The max number of iterations of centroiding to perform (The actual number of iterations may be less). Default is 100.
+			The max number of iterations of centroiding to perform (The actual number 
+			of iterations may be less). Default is 100.
 	max_pos_error : float, optional
-			The maximimum positional error allowed before returning the calculated centroid, default is 0.01.
+			The maximimum positional error allowed before returning the calculated 
+			centroid, default is 0.01.
 
 	Returns
 	-------
