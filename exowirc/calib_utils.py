@@ -89,21 +89,27 @@ def calibrate_all(raw_dir, calib_dir, dump_dir, science_ranges, dark_ranges,
 		dark_ranges, dark_for_flat_range, flat_range, style,
 		remake_darks_and_flats)
 
-	#making mcf
+	# makes multicomponent frame to remove the arc
+	#    only in the case where the background_mode is "helium"
 	mcf = None
 	if background_mode == 'helium':
 		mcf = construct_multicomponent_frame(calib_dir, dump_dir)	
 
+	# creates a list of covariates
 	covariates = {'bkgs': [], 'bjd': [], 'AIRMASS': []}
 
 	# this loop written to account for discontinuous
-	# ranges of science image numbers
+	#    ranges of science image numbers
 	for i, science_range in enumerate(science_ranges):
 		science_range = [science_range]
 		to_calibrate = get_science_img_list(science_range)
 		dark_index = 0
 		if len(darks) > 1:
 			dark_index = i
+		
+		# actually does the calibrate sequence function
+		#    for all of the science images in list to_calibrate
+		# if no covariates listed, then return None (== covariates)
 		covariates = calibrate_sequence(raw_dir, calib_dir,
 			to_calibrate, flat, darks[dark_index], bp,
 			hps[dark_index], bkg_filename, destripe, style,
@@ -190,9 +196,12 @@ def calibrate_sequence(raw_dir, calib_dir, science_sequence, flat, dark,
 		with fits.open(bkg) as hdul:
 			background_frame = hdul[0].data
 	else:
+		# TODO raise an issue if no background frame is provided
 		background_frame = None
 	
+	# loop through all images in the science frames
 	for i in science_sequence:
+		# extract the image name from the full directory name
 		image = get_img_name(raw_dir, i, style = style) 
 		print(f"Reducing {image}...")
 		calib, covariates = calibrate_image(image, flat, dark, bp, hp,
@@ -210,18 +219,24 @@ def calibrate_sequence(raw_dir, calib_dir, science_sequence, flat, dark,
 
 ###Checking saved versions###
 def check_saved(dirname, dark_seqs, flat_seq, style):
-	"""Checks that the dark and flat files have already been created and all related metadata stored in the image fits header are saved.
+	"""Checks that the dark and flat files have already been created and all
+	related metadata stored in the image fits header are saved.
 
 	Parameters
 	--------------------
 	dirname : string
-			Path to the directory in which all combined darks and flats are stored
+			Path to the directory that stores all combined darks and flats
 	dark_seqs : list of tuples
-			List of (int1, int2) tuples corresponding to starting and ending image numbers of the dark image sequence(s). List length may be longer than 1 if the raw images were taken in multiple sequences and settings.
+			List of (int1, int2) tuples corresponding to starting and ending
+			image numbers of the dark image sequence(s). List length may be
+			longer than 1 if the raw images were taken in multiple sequences
+			and settings.
 	flat_seq : tuple of ints
-			List of (int1, int2) tuples corresponding to starting and ending image numbers of the flat image sequence
+			List of (int1, int2) tuples corresponding to starting and ending
+			image numbers of the flat image sequence.
 	style : string, optional
-			Prefix convention used in naming the image. Usually 'image' or 'wirc' unless otherwise specified during observations
+			Prefix convention used in naming the image. Usually 'image' or
+			'wirc' unless otherwise specified during observations.
 	Returns
 	-----------------
 	flat : string
@@ -473,16 +488,21 @@ def get_bad_px(flat, local_sig_bad_pix = 3, global_sig_bad_pix = 9,
 	flat : numpy.ndarray of floats
 			Array containing data of the .fits file for the flat image
 	local_sig_bad_pix : int, optional
-			Pixel values with this number of standard deviations above the local surrounding pixels will be marked as bad pixels, by default 3
+			Pixel values with this number of standard deviations above
+			the local surrounding pixels will be marked as bad pixels,
+			by default 3
 	global_sig_bad_pix : int, optional
-			Pixel values with this many standard deviations above the median of the whole image will be marked as bad, by default 9
+			Pixel values with this many standard deviations above the median
+			of the whole image will be marked as bad, by default 9
 	local_box_size : int, optional
-			Pixel box size from which the local average standard deviation of pixels is taken, by default 11
+			Pixel box size from which the local average standard deviation of
+			pixels is taken, by default 11
 
 	Returns
 	-------
 	numpy.ndarray of booleans
-			2048 x 2048 array where each boolean value correspond to a pixel. 0 indicates a good pixel and 1 indicates a broken pixel, i.e. bad.
+			2048 x 2048 array where each boolean value correspond to a pixel.
+			0 indicates a good pixel and 1 indicates a broken pixel, i.e. bad.
 	"""
 
 	median_flat = median_filter(flat, local_box_size)
@@ -529,13 +549,14 @@ def clean_bad_pix(image, bad_px_map, replacement_box = 5):
 
 ###Background construction###
 
+# doesn't look like this function is used
 def make_calibrated_bkg_image(data_dir, calib_dir, bkg_seq, dark_ranges, 
 	dark_for_flat_range, flat_range, naming_style = 'wirc', 
 	nonlinearity_fname = None, sigma_lower = 5, 
 	sigma_upper = 3, plot = False, remake_bkg = False,
 	remake_darks_and_flats = False):
 	"""
-	Create a calibrated sky background image from the sky background frames
+	Create a calibrated sky background image from the sky background frames.
 
 	Parameters
 	--------------------
@@ -585,11 +606,18 @@ def make_calibrated_bkg_image(data_dir, calib_dir, bkg_seq, dark_ranges,
 			Path to the final calibrated background image
 	"""
 
+	# get the list of filenames to load-up that correspond
+	#    to the background calibration sequence
 	image_list = [get_img_name(data_dir, i,
 		style = naming_style) for \
 		i in range(bkg_seq[0], bkg_seq[1] + 1)]
+	# create an image name that will correspond to the
+	#    calibrated background image, using the last number
+	#    in the bkg_seq list
 	imname = get_img_name(calib_dir, bkg_seq[-1],
 		style = naming_style, img_type = 'calibrated_background')
+	# try to find the background image if the input specifies
+	#    to not re-make the background image
 	if not remake_bkg:
 		try:
 			return check_saved_background(imname)
@@ -597,7 +625,7 @@ def make_calibrated_bkg_image(data_dir, calib_dir, bkg_seq, dark_ranges,
 			print("Can't find saved background -- remaking...")
 
 	print("Creating background frame...")
-	#create/load up flats and darks
+	#create/load-up flats and darks
 	flat, darks, bp, hps = make_darks_and_flats(data_dir, calib_dir,
 		dark_ranges, dark_for_flat_range, flat_range, naming_style,
 		remake_darks_and_flats)
@@ -609,6 +637,7 @@ def make_calibrated_bkg_image(data_dir, calib_dir, bkg_seq, dark_ranges,
 	i = 0
 	med_val = 0
 	clipped_ims = np.ma.zeros([2048,2048, len(image_list)])
+	# loop through all of the background images
 	for name in image_list:
 		print(f"Stacking image {name}...")
 		calib, _ = calibrate_image(name, flat, dark, bp, hp,
@@ -729,38 +758,59 @@ def calibrate_image(im_name, flat, dark, bp, hp, correct_nonlinearity = False,
 		hdu = hdul[0]
 		header = hdu.header
 		image = hdu.data
+	
+	# step 1 -- do the nonlinearity correction
 	if correct_nonlinearity:
 		image = nonlinearity_correction(image, header,
 			nonlinearity_array)
+		
+	# step 2 -- correct for dark current by subtracting
+	#    the dark image from the science image
+	#    "dark_corr" = dark corrected
 	dark_corr = image - dark
+
+	# step 3 -- correct for the flat by dividing to correct
+	#    for variations in pixel sensitivity
 	corr = dark_corr/flat
+
+	# step 4 -- clean-up the pixels that are either
+	#    denoted as bad or hot in the input masks
 	bad_px_map = np.logical_or(bp, hp)
 	cleaned = clean_bad_pix(corr, bad_px_map)
+
+	# removes pixels with infinite value and sets the
+	#    values to zero
 	cleaned[~np.isfinite(cleaned)] = 0.
+
+	# initialize a variable called "retval"
 	retval = None
 	if len(mask_channels) > 0:
 		cleaned = mask_bad_channels(cleaned, mask_channels)
 
+	# step 5 -- remove the background 
 	if background_mode == 'median':
 		#simple sigma-clipped median removal
 		_, med, _ = sigma_clipped_stats(cleaned.flatten())
 		cleaned -= med
 		retval = med
-
 	elif background_mode == 'global':
 		#requires reduced background frame
 		scale = np.nanmedian(cleaned) / np.nanmedian(background_frame)
 		cleaned -= scale*background_frame
 		retval = scale
-
 	elif background_mode == 'helium':
 		#requires multicomponent frame and reduced background frame
 		cleaned, retval = helium_background_subtraction(cleaned,
-			background_frame, multicomponent_frame)	
+			background_frame, multicomponent_frame)
+	# TODO -- probably want to throw an error if the
+	#    background_mode is not an expected value
+	# TODO -- could probably also condense this into a helper function
 	
+	# optional -- remove stripes on detector
 	if destripe:
 		cleaned = destripe_image(cleaned)
 
+	# optional -- get the covariates
 	if covariate_dict is not None:
 		for covariate in covariate_dict.keys():
 			if covariate == 'bjd':
@@ -771,7 +821,9 @@ def calibrate_image(im_name, flat, dark, bp, hp, correct_nonlinearity = False,
 			else:
 				covariate_dict[covariate].append(
 					header[covariate])
-
+				
+	# return the cleaned image and
+	#    the covariate_dictionary (which could be None)
 	return cleaned, covariate_dict
 
 def mask_bad_channels(cleaned, to_mask):

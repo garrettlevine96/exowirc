@@ -74,6 +74,8 @@ def init_output_direcs(path, test_name):
     calib_dir = path + 'calibrated_' + test_name + '/'
     dump_dir = path + 'dump_files_' + test_name + '/'
     img_dir = path + 'image_files_' + test_name + '/'
+    # exist_ok == True means that nothing happens
+    #   if the output directory already exists
     Path(calib_dir).mkdir(exist_ok = True)
     Path(dump_dir).mkdir(exist_ok = True)
     Path(img_dir).mkdir(exist_ok = True)

@@ -376,65 +376,100 @@ def perform_photometry(calib_dir, dump_dir, img_dir, science_ranges,
 	style = 'wirc', source_detection_sigma = 50, max_num_compars = 10,
 	gain = 1.2, bkg_fname = None, background_mode = None,
 	ann_rads = (20, 50), target_and_compars = None, bad_channel = False):
-	"""Given a list of science images, perform aperture photometry. First, sources are automatically detected and cleaned. Then run the aperture photometry with local background subtraction using a sigma-clipped annulus. The aperture sums and errors for each radius, as well as diagnostics like x centroid, y centroid, and PSF width, are pickled and saved for fitting.
+	"""Given a list of science images, perform aperture photometry.
+	First, sources are automatically detected and cleaned.
+	Then run the aperture photometry with local background subtraction
+	using a sigma-clipped annulus. The aperture sums and errors for each
+	radius, as well as diagnostics like x centroid, y centroid, and PSF
+	width, are pickled and saved for fitting.
 	
 	Parameters
 	------------
 	calib_dir : string
 			Path to the directory holding the calibrated science images.
 	dump_dir : string
-			Path to the directory into which the pickled results will be saved.
+			Path to the directory into which the pickled results
+			will be saved.
 	img_dir : string
-			Path to the directory holding all the diagnostic plots that will be automatically generated.
+			Path to the directory holding all the diagnostic plots
+			that will be automatically generated.
 	science_ranges : list of tuples
-			List of (int1, int2) tuples, where each tuple defines a single linear sequence of science images
+			List of (int1, int2) tuples, where each tuple defines a
+			single linear sequence of science images
 	target_coords : tuple, shape:(2)
-			An (x, y) tuple describing approximately where the target is located on the detector
+			An (x, y) tuple describing approximately where the target
+			is located on the detector
 	finding_fwhm : float, optional
 			The PSF FWHM used for automatic source detection
 	extraction_rads : array_like, optional
-			A list of radii defining target aperture sizes to be used for the photometry
+			A list of radii defining target aperture sizes to be used
+			for the photometry
 	style : string, optional
-			The prefix for the image number. usually 'image' or 'wirc' unless otherwise specified during observations
+			The prefix for the image number. usually 'image' or 'wirc'
+			unless otherwise specified during observations
 	source_detection_sigma : float, optional
-			The number of sigmas that a source needs to be above the background to be detected
+			The number of sigmas that a source needs to be above the
+			background to be detected
 	max_num_compars : int, optional
 			The maximum number of comparison stars to use.
 	gain : float, optional
-			The gain for the WIRC detector. Made it a free parameter but it's unlikely to change anytime soon, so probably leave this alone.
+			The gain for the WIRC detector. Made it a free parameter
+			but it's unlikely to change anytime soon, so probably
+			leave this alone.
 	bkg_frame : int, optional
-			The number of the background frame used for calibration, if necessary. If background frame subtraction was performed during calibration and you want accurate photometric errors, you definitely should set this parameter.
+			The number of the background frame used for calibration,
+			if necessary. If background frame subtraction was performed
+			during calibration and you want accurate photometric errors,
+			you definitely should set this parameter.
 	global_bkg_sub : boolean, optional
-			If you chose to subtract a background frame or a sigma-clipped background from the science images during calibration, set this flag to True so that you can calculate accurate photometric errors.
+			If you chose to subtract a background frame or a sigma-clipped
+			background from the science images during calibration, set this
+			flag to True so that you can calculate accurate photometric errors.
 	ann_rads : tuple, optional
-			Tuple of form (float1, float2), where float1 specifies the inner radius and float2 specifies the outer radius of the annulus that will be used for local background subtraction
+			Tuple of form (float1, float2), where float1 specifies the inner
+			radius and float2 specifies the outer radius of the annulus that
+			will be used for local background subtraction
 	target_and_compars : list of shape:(2) lists
-			A list of [x, y] coordinates for manually selected target stars and comparison stars. Only select this if you don't want automatic source detection. The target star is assumed to come first in the list.
+			A list of [x, y] coordinates for manually selected target stars
+			and comparison stars. Only select this if you don't want automatic
+			source detection. The target star is assumed to come first in the list.
 
 	Returns
 	-------------
 	clean_fnames : list of Strings
-			A list of the paths to the pickled and saved photometry and error arrays as well as to the auxilliary arrays for the centroids and widths
+			A list of the paths to the pickled and saved photometry and error
+			arrays as well as to the auxilliary arrays for the
+			centroids and widths.
 	"""
-	#initializing dirs and finding frame 
+	# get list of numbers corresponding to the sicence images
 	to_extract = get_science_img_list(science_ranges) 
+	# get the number of frames that will be processed
 	n_images = len(to_extract)
+	# initialize the directory in which to dump photometric extraction results
 	dump_dir_phot = init_phot_dirs(dump_dir, img_dir, extraction_rads)
+	# get the first frame in the to_extract list, which will
+	#    be used to determine the initial positions of the sources
 	finding_frame = load_calib_img(calib_dir, to_extract[0], style = style)
 
-	#getting list of sources
+	# next block of code gets a list of sources
 	max_lengthscale = ann_rads[1]
+	# if no target_and_comp provided, then try to find
+	#    the sources automatically
 	if target_and_compars is None:  
-		sources = find_sources(finding_frame, fwhm = finding_fwhm, sigma_threshold = source_detection_sigma) 
+		sources = find_sources(finding_frame, fwhm = finding_fwhm,
+			sigma_threshold = source_detection_sigma) 
 		#print('sources', sources)
 		if sources is None:
 			print("NO SOURCES FOUND!!") 
 		source_ind_temp = find_my_source(sources, target_coords)
 		#print(source_ind_temp)
-		sources = clean_sources(sources, max_lengthscale, bad_channel = bad_channel)
+		sources = clean_sources(sources, max_lengthscale,
+			  bad_channel = bad_channel)
 		source_ind = find_my_source(sources, target_coords)
 		plot_sources(img_dir, finding_frame, sources, finding_fwhm, ann_rads)
 		n_sources = len(sources)
+	# if target_and_comp provided, then just use the given (x, y)
+	#    coordinates on the detector for the source stars
 	else:
 		x_stars = np.array([tup[0] for tup in target_and_compars])
 		y_stars = np.array([tup[1] for tup in target_and_compars])
@@ -452,10 +487,12 @@ def perform_photometry(calib_dir, dump_dir, img_dir, science_ranges,
 	if background_mode is not None:
 		bkgs = np.array(load_bkgs(dump_dir))
 
-	#performing the extraction	
+	# next block of code runs the extraction using photutils package
+	# loop through all of the science images to process
 	for i, n_img in enumerate(to_extract):
 		print('Extracting image ', n_img)
 		image = load_calib_img(calib_dir, n_img, style = style)
+		# do the backgorund subtraction
 		if background_mode == 'helium':
 			mcf = load_multicomponent_frame(dump_dir)
 			bkg_error_array = construct_bkg(bkg_arr, bkgs[i], mcf)
@@ -473,7 +510,10 @@ def perform_photometry(calib_dir, dump_dir, img_dir, science_ranges,
 		else:
 			error = np.sqrt(image / gain)
 
-		phot_table, xs, ys, widths = get_aperture_sum(sources, image, radii = extraction_rads, error = error, ann_rads = ann_rads, target_ind = source_ind)
+		# get the sum total flux in the already-defined aperture
+		phot_table, xs, ys, widths = get_aperture_sum(sources, image,
+			radii = extraction_rads, error = error,
+			ann_rads = ann_rads, target_ind = source_ind)
 		xpos[:,i] = xs
 		ypos[:,i] = ys
 		psf_widths[:,i] = widths
@@ -511,9 +551,14 @@ def construct_bkg(background, scale_factors, multicomponent_frame):
 	background : numpy.ndarray
 			A stack of the background sky image data
 	scale_factors : numpy.ndarray
-			An array of scale factors for each of the sky images that are part of the background dither sequence, relating the individual image median value bacto that of the first frame in the background sequence
+			An array of scale factors for each of the sky images that are 
+			part of the background dither sequence, relating the individual
+			image median value bacto that of the first frame in the 
+			background sequence.
 	multicomponent_frame : numpy.ndarray  
-			2048 x 2048 numpy array representing radial distances from the filter center of the helium arc, used for correcting brightness variation due to the helium arc structure
+			2048 x 2048 numpy array representing radial distances from the
+			filter center of the helium arc, used for correcting brightness
+			variation due to the helium arc structure.
             
 	Returns
 	--------------
@@ -528,7 +573,9 @@ def construct_bkg(background, scale_factors, multicomponent_frame):
 	return new_bkg
 
 def get_source_first(source_ind, xpos, ypos, widths, phot, errs):
-	"""Moves the source to be index 0 in each of the photometry and auxilliary arrays. Bubbling up target star to be index 0 in the list of stars.
+	"""Moves the source to be index 0 in each of the photometry and
+	auxilliary arrays. Bubbling up target star to be index 0 in
+	the list of stars.
 	
 	Parameters
 	------

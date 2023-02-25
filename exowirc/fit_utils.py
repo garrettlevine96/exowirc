@@ -281,14 +281,18 @@ def crossmatch_covariates(covariates, covariate_dict):
     Parameters
     ----------
     covariates : list
-        A list of strings representing all the desired covariates to be retained and used in the final light curve fitting.
+        A list of strings representing all the desired covariates to be
+        retained and used in the final light curve fitting.
     covariate_dict : dict
-        A dictionary of arrays for all covariate data from each science image. Covariates include: 'psf_width','airmass','background','water_proxy','d_from_med','x_cent','y_cent'
+        A dictionary of arrays for all covariate data from each science image.
+        Covariates include: 'psf_width','airmass','background','water_proxy',
+        'd_from_med','x_cent','y_cent'
 
     Returns
     -------
     list
-        The covariate_dict including only the data selected by the user in the covariates list.
+        The covariate_dict including only the data selected by the user
+        in the covariates list.
 
     """
     return [covariate_dict[cov] for cov in covariates]
@@ -305,12 +309,14 @@ def fit_lightcurve(dump_dir, plot_dir, best_ap, background_mode,
     tess_x = None, tess_y = None, tess_yerr = None, tess_texp = None,
     tess_t0_prior = None, sigma_cut_init = 10):
     """
-    The main function used to fit the target light curve and find the best-fit transit model parameters.
+    The main function used to fit the target light curve and find the best-fit
+    transit model parameters.
 
     Parameters
     ----------
 	dump_dir : string
-			Path to directory in which the saved covariates background values and pickled raw photometry values are stored.
+			Path to directory in which the saved covariates background values
+            and pickled raw photometry values are stored.
     plot_dir : str
         Path to the directory in which the light curve fitting plots will be stored.
     best_ap : int
