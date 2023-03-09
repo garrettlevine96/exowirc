@@ -11,6 +11,8 @@ from .plot_utils import plot_sources
 from .io_utils import get_science_img_list, init_phot_dirs, load_calib_img, \
 	load_bkgs, load_multicomponent_frame, save_phot_data 
 
+
+
 def find_sources(image, fwhm = 20., sigma_threshold = 20.):
 	"""Using the photutils DAOStarFinder algorithm, automatically
 	identify sources of a certain FWHM and a certain SNR.
