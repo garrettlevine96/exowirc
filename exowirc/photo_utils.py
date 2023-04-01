@@ -364,6 +364,7 @@ def find_my_source(sources, target_coords, tolerance = 10):
 	x, y = target_coords
 	xs = np.array(sources['xcentroid'])
 	ys = np.array(sources['ycentroid'])
+	#print(sources)
 	distances = np.sqrt((x - xs)**2 + (y - ys)**2)
 	index = np.argmin(distances)
 	min_distance = min(distances)

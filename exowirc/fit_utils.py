@@ -23,45 +23,58 @@ def clean_up(x, ys, yerrs, compars, weight_guess, cutoff_frac,
     end_num, filter_width, sigma_cut, plot = False, plot_dir = None,
     verbose = True, tag = ''):
     """
-    Cleans up photometry by sigma clipping and removing any data during large flux dips
+    Cleans up photometry by sigma clipping and removing any data
+    during large flux dips.
 
     Parameters
     ----------
     x : numpy.ndarray
         Array of time values for the photometric flux measurements.
     ys : numpy.ndarrays
-        Arrays of flux values for the photometry measurements of the target and comparison stars at each aperture size.
+        Arrays of flux values for the photometry measurements of the target
+        and comparison stars at each aperture size.
     yerrs : numpy.ndarrays
         Arrays of error values on the aperture photometry measurements.
     compars : numpy.ndarray
-        Arrays of flux values for the photometry measurements on the comparison stars.
+        Arrays of flux values for the photometry measurements on the
+        comparison stars.
     weight_guess : numpy.ndarray
-        Initial guesses for the weights of all the comparison stars to be used in the fit. Default is equal weighting for each comparsion star.
+        Initial guesses for the weights of all the comparison stars
+        to be used in the fit. Default is equal weighting for each
+        comparsion star.
     cutoff_frac : float
         Minimum flux value below which the photometry is clipped.
     end_num : int
         The number of data points at the end of the data set to exclude.
     filter_width : int
-        The number of data points to be used for the window length of the median filter.
+        The number of data points to be used for the window length of the
+        median filter.
     sigma_cut : int
-        The sigma threshold to be used for clipping data with the median filter.
+        The sigma threshold to be used for clipping data with the
+        median filter.
     plot : boolean, optional
-        If set to true, a plot for the outlier rejection from median filtering will be generated. The default is False.
+        If set to true, a plot for the outlier rejection from median
+        filtering will be generated. The default is False.
     plot_dir : str, optional
-        Path to the directory in which the outlier rejection image will be stored. Needs to be included if plot =True. The default is None.
+        Path to the directory in which the outlier rejection image
+        will be stored. Needs to be included if plot==True.
+        The default is None.
 
     Returns
     -------
     masked x
         Masked array of time values for the photometric flux measurements.
     masked ys
-        Masked arrays of flux values for the photometry measurements of the target and comparison stars at each aperture size.
+        Masked arrays of flux values for the photometry measurements of
+        the target and comparison stars at each aperture size.
     masked yerrs
         Masked arrays of error values on the aperture photometry measurements.
     masked compars
-        Masked arrays of flux values for the photometry measurements on the comparison stars.
+        Masked arrays of flux values for the photometry measurements on
+        the comparison stars.
     full_mask : numpy.ndarray
-        Array of booleans representing which measurements to use in the final light curves.
+        Array of booleans representing which measurements to use in the
+        final light curves.
 
     """
 
@@ -376,23 +389,31 @@ def fit_lightcurve(dump_dir, plot_dir, best_ap, background_mode,
 
     """
     
+    # make a Boolean that is True only if ALL of the required TESS data
+    #    are passed to the function (x, y, errors, exposure time)
     fit_tess = (tess_x is not None) and (tess_y is not None) and \
         (tess_yerr is not None) and (tess_texp is not None)
-
+    
+    # get the photometry data from the best aperture size
     x_init, ys_init, yerrs_init, bkgs_init, centroid_x_init, \
         centroid_y_init, airmass, widths = \
         load_phot_data(dump_dir, best_ap)
     compars_init = ys_init[1:]
+    # assign the same weight --- unity divided by the number of comparison
+    #     stars for the first guess of a comparison source weights
     weight_guess_init = np.array([1./len(compars_init)]*len(compars_init))
 
+    # sigma-clip and remove low flux values
     x, ys, yerrs, compars, mask = clean_up(x_init, ys_init, yerrs_init,
             compars_init, weight_guess_init, flux_cutoff,
             end_num, filter_width, sigma_cut_init, plot = True,
             plot_dir = plot_dir)
-
+    
     cov_dict = get_covariates(bkgs_init, centroid_x_init, centroid_y_init,
         airmass, widths, background_mode, mask)
     covs = crossmatch_covariates(covariate_names, cov_dict)
+    np.savetxt("x_quickfit.txt", x)
+    np.savetxt("y_quickfit.txt", ys)
     plot_quickfit(plot_dir, x, ys, yerrs)
     plot_covariates(plot_dir, x, covariate_names, covs)
 
