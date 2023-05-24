@@ -412,8 +412,8 @@ def fit_lightcurve(dump_dir, plot_dir, best_ap, background_mode,
     cov_dict = get_covariates(bkgs_init, centroid_x_init, centroid_y_init,
         airmass, widths, background_mode, mask)
     covs = crossmatch_covariates(covariate_names, cov_dict)
-    np.savetxt("x_quickfit.txt", x)
-    np.savetxt("y_quickfit.txt", ys)
+    #np.savetxt("x_quickfit.txt", x)
+    #np.savetxt("y_quickfit.txt", ys)
     plot_quickfit(plot_dir, x, ys, yerrs)
     plot_covariates(plot_dir, x, covariate_names, covs)
 
