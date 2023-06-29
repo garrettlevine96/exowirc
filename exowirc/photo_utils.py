@@ -344,7 +344,8 @@ def clean_sources(sources, fwhm, bad_channel = False):
 	return sources
 
 def find_my_source(sources, target_coords, tolerance = 10):
-	"""Given a list of sources and an initial guess for the coordinates of the target, determines the index of the target source.
+	"""Given a list of sources and an initial guess for the coordinates
+		of the target, determines the index of the target source.
 	
 	Parameters
 	------
@@ -353,12 +354,16 @@ def find_my_source(sources, target_coords, tolerance = 10):
 	target_coords : tuple, shape:(2)
 			An (x, y) tuple describing approximately where the target is located
 	tolerance : float, optional
-			The maximum distance away (in pixels) from the guess for a source to be considered correctly identified. If it's small, your guess better be really good. If it's big, be careful of additional nearby sources.
+			The maximum distance away (in pixels) from the guess for a
+				source to be considered correctly identified. If it's small,
+				your guess better be really good. If it's big, be careful of
+				additional nearby sources.
 
 	Returns
 	-------
 	index : int or None
-			If the source is found, this is the index of the source in the sources dict. If not, None will be returned.
+			If the source is found, this is the index of the source in the
+			sources dict. If not, None will be returned.
 			change this
 	"""
 	x, y = target_coords
@@ -567,7 +572,9 @@ def construct_bkg(background, scale_factors, multicomponent_frame):
 	Returns
 	--------------
 	numpy.ndarray
-			An updated stack of sky background image data adjusted in brightness by the scale factors and with the multicomponent frame
+			An updated stack of sky background image data adjusted in
+				brightness by the scale factors and with the
+				multicomponent frame.
 	"""
 	new_bkg = np.zeros(background.shape)
 	for i in range(scale_factors.shape[0]):
@@ -628,7 +635,9 @@ def get_source_first(source_ind, xpos, ypos, widths, phot, errs):
 
 def reject_bad_trends(xpos, ypos, widths, phot, errs, max_num_compars = 10):
 	"""Using the residual sum of squares as a best-fit statistic, retains
-	only a specified number of the best comparison stars. Removes bad comparison stars which do not vary in brightness in sync with the target star
+		only a specified number of the best comparison stars. Removes
+		bad comparison stars which do not vary in brightness in sync
+		with the target star.
 	
 	Parameters
 	------
@@ -643,20 +652,27 @@ def reject_bad_trends(xpos, ypos, widths, phot, errs, max_num_compars = 10):
 	errs : 	array_like
 			Array containing the raw errors for each of the sources
 	max_num_compars : int, optional
-			The maximum number of comparison stars that you want to retain. Default is 10. Note that in sparse fields, there may be fewer comparison stars than this.
+			The maximum number of comparison stars that you want to retain.
+			Default is 10. Note that in sparse fields, there may be fewer
+			comparison stars than max_num_compars.
 
 	Returns
 	-------
 	xpos : array_like
-			Array containing all the x coordinates for the centroids ofevery source with only max_num_compars sources retained
+			Array containing all the x coordinates for the centroids
+			of every source with only max_num_compars sources retained.
 	ypos : array_like
-			Array containing all the y coordinates for the centroids of every source with only max_num_compars sources retained
+			Array containing all the y coordinates for the centroids of
+			every source with only max_num_compars sources retained.
 	widths : array_like
-			Array containing the widths for every source PSF with only max_num_compars sources retained
+			Array containing the widths for every source PSF with only
+			max_num_compars sources retained.
 	phot : array_like
-			Array containing the photometry for each of the sources with only max_num_compars sources retained
+			Array containing the photometry for each of the sources
+			with only max_num_compars sources retained.
 	errs : 	array_like
-			Array containing the raw errors for each of the sources with only max_num_compars sources retained
+			Array containing the raw errors for each of the sources
+			with only max_num_compars sources retained.
 	"""
 	print("Rejecting bad trends...")
 	total_num_compars = len(phot) - 1

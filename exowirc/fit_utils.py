@@ -365,7 +365,8 @@ def fit_lightcurve(dump_dir, plot_dir, best_ap, background_mode,
     phase : float, optional
         The phase of the event to be modeled in the light curve. The default is 'primary'.
     ldc_val : list, optional
-        If the limb darkening paramaters are already known with high confidence, they can be set here and will not be included in the fit. The default is None.
+        If the limb darkening paramaters are already known with high confidence, they 
+        can be set here and will not be included in the fit. The default is None.
     bin_time : float, optional
         The time in minutes to bin the final light curve down to for plotting. The default is 5.
     flux_cutoff : float, optional
