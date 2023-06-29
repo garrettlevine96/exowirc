@@ -187,7 +187,8 @@ def calibrate_sequence(raw_dir, calib_dir, science_sequence, flat, dark,
 	Returns
 	--------------
     covariates : dictionary
-            Covariates values of the specified covariance type for each science image in the sequence
+            Covariates values of the specified covariance type for
+			each science image in the sequence.
 	"""
 	flat, dark, bp, hp, nonlinearity_array, correct_nonlinearity = \
 		load_calib_files(flat,dark,bp,hp,nonlinearity_fname)
@@ -336,7 +337,8 @@ def make_darks_and_flats(dirname, calib_dir, dark_seqs, dark_for_flat_seq,
 	bp : string
 			Path to the bad pixel file from the combined flat
 	hps : list of strings
-			Paths to the hot pixel files from the combined darks. Also usually just one element.
+			Paths to the hot pixel files from the combined darks.
+			Also usually just one element.
 	"""
 	#check if saved versions exist
 	if not remake_darks_and_flats:
@@ -396,7 +398,9 @@ def make_combined_image(dirname, calib_dir, seq_start, seq_end,
 			Path to the bad/hot pixel file from the combined frame
 	"""
 	zeros = '0'*(4 - len(str(seq_end)))
-	image_list = [get_img_name(dirname, i, style = style) for i in range(seq_start, seq_end + 1)]
+	image_list = [get_img_name(dirname, i, style = style)
+	    for i in range(seq_start, seq_end + 1)]
+	
 	stack = np.zeros([2048, 2048, len(image_list)])
 	for i,name in enumerate(image_list):
 		with fits.open(name) as hdul:

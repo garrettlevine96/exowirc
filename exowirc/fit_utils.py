@@ -246,13 +246,13 @@ def get_covariates(bkgs_init, centroid_x_init, centroid_y_init, airmass, widths,
     bkgs_init : numpy.ndarray
         Array of scale factors for the background brightness relative to the initial sky background dither.
     centroid_x_init : numpy.ndarrays
-        Arrays of the x pixel location of the target and comparsion stars in each image.
+        Arrays of the x pixel location of the target and comparison stars in each image.
     centroid_y_init : numpy.ndarrays
-        Arrays of the y pixel location of the target and comparsion stars in each image.
+        Arrays of the y pixel location of the target and comparison stars in each image.
     airmass : numpy.ndarray
         Array of the airmass values in each image.
     widths : numpy.ndarrays
-        Arrays of the PSF widths of the target and comparsion stars in each image.
+        Arrays of the PSF widths of the target and comparison stars in each image.
     background_mode : float
         The method of sky background generation. Options are 'helium','global', and 'median'
     mask : numpy.ndarray
@@ -261,7 +261,9 @@ def get_covariates(bkgs_init, centroid_x_init, centroid_y_init, airmass, widths,
     Returns
     -------
     covariate_dict : dict
-         A dictionary of arrays for all covariate data from each science image. Covariates include: 'psf_width','airmass','background','water_proxy','d_from_med','x_cent','y_cent'.
+         A dictionary of arrays for all covariate data from each science image.
+         Covariates include: 'psf_width','airmass','background','water_proxy',
+            'd_from_med','x_cent','y_cent'.
 
     """
 
@@ -835,13 +837,15 @@ def make_model(x, ys, yerrs, compars, weight_guess, texp, r_star_prior,
     x : numpy.ndarray
         Array of time values for the photometric flux measurements.
     ys : numpy.ndarrays
-        Arrays of flux values for the photometry measurements of the target and comparison stars at each aperture size.
+        Arrays of flux values for the photometry measurements of the target
+        and comparison stars at each aperture size.
     yerrs : numpy.ndarrays
         Arrays of error values on the aperture photometry measurements.
     compars : numpy.ndarray
         Arrays of flux values for the photometry measurements on the comparison stars.
     weight_guess : numpy.ndarray
-        Initial guesses for the weights of all the comparison stars to be used in the fit. Default is equal weighting for each comparsion star.
+        Initial guesses for the weights of all the comparison stars to be used in
+        the fit. Default is equal weighting for each comparsion star.
     texp : float
         Science image exposure time in days.
     r_star_prior : tuple

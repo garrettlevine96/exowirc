@@ -93,8 +93,10 @@ def accurate_cent(data, xc, yc, radius=3.0, max_iter=100, max_pos_error=1.e-2):
 
 def get_aperture_sum(sources, image, radii = [10.], error = None,
 	ann_rads = (25, 50), target_ind = 0):
-	"""Given a list of sources, re-calculates image centroids via flux-weighted centroiding and performs aperture photometry on all the sources. All counts in the aperture are summed, and the local background is
-	estimated using an annulus.
+	"""Given a list of sources, re-calculates image centroids
+	via flux-weighted centroiding and performs aperture photometry
+	on all the sources. All counts in the aperture are summed, and
+	the local background is estimated using an annulus.
 
 	Parameters
 	------
@@ -105,22 +107,31 @@ def get_aperture_sum(sources, image, radii = [10.], error = None,
 	radius : numpy.ndarray, optional
 			Radii of the apertures for the photometry
 	error : None or numpy.ndarray, shape(2048, 2048), optional
-			If None, errors will not be calculated during photometry. If numpy.ndarray, the errors will be used to produce error estimates on the photometry
+			If None, errors will not be calculated during photometry.
+			If numpy.ndarray, the errors will be used to produce error
+			estimates on the photometry.
 	ann_rads : tuple, optional
-			Tuple of form (float1, float2), where float1 specifies the inner radius and float2 specifies the outer radius of the annulus that will be used for local background subtraction
+			Tuple of form (float1, float2), where float1 specifies the
+			inner radius and float2 specifies the outer radius of the
+			annulus that will be used for local background subtraction.
 	target_ind : int
-			Index location of the target in the list of sources. Default to 0 because index loaction of the source coordinate is conventionally marked at the 0th index, and function find_my_source() moves the source with target coordinate to the top of the list
+			Index location of the target in the list of sources.
+			Default to 0 because index loaction of the source coordinate
+			is conventionally marked at the 0th index, and function
+			find_my_source() moves the source with target coordinate
+			to the top of the list.
 
 	Returns
 	-------
 	phot_table : astropy.Table
-			Table with aperture sums for each radius and errors (if specified by input params)
+		Table with aperture sums for each radius and errors
+		(if specified by input params).
 	xs : numpy.ndarrays
-			Array of x centroids of all the sources
+		Array of x centroids of all the sources
 	ys : numpy.ndarrays
-			Array of y centroids of all the sources
+		Array of y centroids of all the sources
 	widths : numpy.ndarrays
-			Array of PSF widths for all the sources
+		Array of PSF widths for all the sources
 	"""
 	radii = list(radii)
 	max_rad = max(radii)
@@ -210,7 +221,7 @@ def gauss(x, *p):
 	return a*np.exp(-(x - b)**2 / (2 * c**2))
 
 def fit_cut(arr, xval, yval):
-	"""Fit a gaussian profile to the star's PSF and then cut the guassian profile to calculate the FWHM in function get_aperature_sum().
+	"""Fit a gaussian profile to the star's PSF and then cut the Gaussian profile to calculate the FWHM in function get_aperature_sum().
 
 	Parameters
 	----------
@@ -232,14 +243,17 @@ def fit_cut(arr, xval, yval):
 	return np.abs(popt[-1])
 
 def make_img_arrs(sources, rad, img):
-	"""Given a list of sources and the image, make a list of smaller cutouts centered on each source. The cutouts go from (center - radius) to (center + rad) in both the x and the y directions.
+	"""Given a list of sources and the image, make a list of smaller cutouts
+	centered on each source. The cutouts go from (center - radius) to
+	(center + rad) in both the x and the y directions.
 
 	Parameters
 	------------
 	sources : astropy.Table or dict
 			Table of source locations with x and y centroids
 	rad : int
-			Half the size of one side of the cutout (or, if you prefer, the radius of the inscribed circle for the bounding box).
+			Half the size of one side of the cutout (or, if you prefer,
+			the radius of the inscribed circle for the bounding box).
 			Needs to be an int for indexing purposes.
 	image : array_like, shape(2048, 2048)
 			The image from which the cutouts will be cut out
@@ -606,15 +620,20 @@ def get_source_first(source_ind, xpos, ypos, widths, phot, errs):
 	Returns
 	-------
 	xpos : array_like
-			Array containing all the x coordinates for the centroids of every source with the target as index 0
+			Array containing all the x coordinates for the centroids of
+			every source with the target as index 0.
 	ypos : array_like
-			Array containing all the y coordinates for the centroids of every source with the target as index 0
+			Array containing all the y coordinates for the centroids of
+			every source with the target as index 0.
 	widths : array_like
-			Array containing the widths for every source PSF with the target as index 0
+			Array containing the widths for every source PSF with the
+			target as index 0.
 	phot : array_like
-			Array containing the photometry for each of the sources with the target as index 0
+			Array containing the photometry for each of the sources
+			with the target as index 0.
 	errs : 	array_like
-			Array containing the raw errors for each of the sources with the target as index 0
+			Array containing the raw errors for each of the sources
+			with the target as index 0.
 	"""
 	source_xpos = xpos[source_ind]
 	source_ypos = ypos[source_ind]

@@ -4,6 +4,8 @@ from xarray import open_dataset
 import numpy as np
 import pickle
 
+MINUTES_IN_DAY = 1440
+
 #calibration io
 
 def save_image(data, imname):
@@ -154,7 +156,7 @@ def save_covariates(dump_dir, covariate_dict):
 
 def save_photon_noise(dump_dir, binsizes, rmses, photon_noise_errors,
         photon_noises, tag = ''):
-    pickle.dump(binsizes*1440, open(f'{dump_dir}binsize_min{tag}.p', 'wb'))
+    pickle.dump(binsizes*MINUTES_IN_DAY, open(f'{dump_dir}binsize_min{tag}.p', 'wb'))
     pickle.dump(rmses, open(f'{dump_dir}rmses{tag}.p', 'wb'))
     pickle.dump(photon_noise_errors, open(f'{dump_dir}rms_errors{tag}.p', 'wb'))
     pickle.dump(photon_noises, open(f'{dump_dir}photon_noises{tag}.p', 'wb'))
