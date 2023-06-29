@@ -502,6 +502,7 @@ def fit_lightcurve(dump_dir, plot_dir, best_ap, background_mode,
     print("Fitting complete!")
     if return_bic:
         jit = new_map[f"jitter"] if fixed_jitter is None else fixed_jitter
+        #print(f"BIC {bic}")
         return bic, len(x), float(jit), trace
     else:
         return None    
@@ -662,14 +663,17 @@ def write_bics(dump_dir, covar_combos, bics):
 
 def gen_latex_table(dump_dir, summary):
     """
-    Generates a latex table for the information on all the fit parameter distributions.
+    Generates a latex table for the information on all the fit
+        parameter distributions.
 
     Parameters
     ----------
     dump_dir : str
-        Path to directory in which the saved covariates, background values, pickled raw photometry arrays, and fit summary data are stored
+        Path to directory in which the saved covariates, background values,
+            pickled raw photometry arrays, and fit summary data are stored
     summary : pandas.core.frame.DataFrame
-        pandas dataFrame containing summary information on the fit parameter distributions.
+        pandas dataFrame containing summary information on the fit
+            parameter distributions.
 
     Returns
     -------
@@ -702,7 +706,8 @@ def gen_lightcurve_table(dump_dir, x, detrended, true_errs):
     Parameters
     ----------
 	dump_dir : string
-			Path to directory in which the saved covariates background values and pickled raw photometry values are stored.
+			Path to directory in which the saved covariates background
+                values and pickled raw photometry values are stored.
     x : numpy.ndarray
         Array of time values for the flux measurements.
     detrended : numpy.ndarray

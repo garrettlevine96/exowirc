@@ -6,9 +6,14 @@ import matplotlib.pyplot as plt
 import photutils
 import corner
 import matplotlib
+
+import pandas as pd
 from .io_utils import save_photon_noise
 
 def plot_sources(img_dir, image, sources, fwhm, ann_rads):
+    """
+    Creates a plot of 
+    """
     positions = [(x, y) for x, y in zip(
         sources['xcentroid'], sources['ycentroid'])]
     apertures = photutils.CircularAperture(positions, r = fwhm/2)
@@ -185,6 +190,15 @@ def doubleplot(plot_dir, dump_dir, x, ys, yerrs, compars, detrended_data,
     bin_lc = plot_lc.bin(time_bin_size = bin_time / 1440.)
     plot_resid = lk.LightCurve(time = x_fold, flux = detrended_data - lc,
         flux_err = true_err)
+
+    ### GARRETT INSERTED CODE TO PRINT CHI-SQUARED HERE
+    print("chi squared")
+    weights = 1.0 / yerrs**2
+    a = np.sum(weights * yerrs) / np.sum(weights)
+    np.sum(((detrended_data - a) / yerrs) ** 2)
+    print(np.sum(((detrended_data - a) / yerrs) ** 2))
+    ### END OF GARRETT INSERTED CODE
+
     bin_resid = plot_resid.bin(time_bin_size = bin_time / 1440.)
 
     #plotting light curve and residuals, unbinned and binned
@@ -196,6 +210,14 @@ def doubleplot(plot_dir, dump_dir, x, ys, yerrs, compars, detrended_data,
     ax[1].errorbar(plot_resid.time.value, plot_resid.flux.value,
         yerr = plot_resid.flux_err.value, color = 'k', marker = '.',
         linestyle = 'None', alpha = 0.1)
+    
+    ### GARRETT INSERTED CODE TO PRINT CHI-SQUARED HERE
+    print("chi-squared 2")
+    print(np.sum(plot_resid.flux.value**2 / plot_resid.flux_err.value))
+    df = pd.DataFrame([plot_resid.flux.value, plot_resid.flux_err.value])
+    df.to_csv("resids.csv")
+    ### END OF GARRETT INSERTED CODE
+    
     ax[1].errorbar(bin_resid.time.value, bin_resid.flux.value,
         yerr = bin_resid.flux_err.value, color = 'k', marker = '.',
         linestyle = 'None', ms = 5)
@@ -289,6 +311,8 @@ def tripleplot(plot_dir, dump_dir, x, ys, yerrs, compars, detrended_data,
     ax[1].errorbar(plot_resid.time.value, plot_resid.flux.value,
         yerr = plot_resid.flux_err.value, color = 'k', marker = '.',
         linestyle = 'None', alpha = 0.1)
+
+    
     ax[1].errorbar(bin_resid.time.value, bin_resid.flux.value,
         yerr = bin_resid.flux_err.value, color = 'k', marker = '.',
         linestyle = 'None', ms = 5)
