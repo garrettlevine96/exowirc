@@ -434,6 +434,8 @@ def fit_lightcurve(dump_dir, plot_dir, best_ap, background_mode,
             print("Constructing model...")
         else:
             print("Refitting MAP...")
+        # optimization done in the make_model() function
+        # this code calls the optimization and gives optimized model + MAP
         model, map_soln = make_model(x, ys, yerrs, compars, weight_guess,
             texp, r_star_prior, t0_prior, period_prior,
             a_rs_prior, b_prior, jitter_prior, phase, ror_prior,
@@ -635,10 +637,10 @@ def calculate_all_bics(dump_dir, img_dir, best_ap, background_mode,
             "same length, so you're comparing apples to oranges with the " + \
             "likelihoods. Here are the dataset sizes: ", ndatas)
 
-    df_comp = az.compare(traces, ic = 'waic')
-    df_comp.to_csv(dump_dir + 'WAIC_comparison.csv')
-    df_comp = az.compare(traces, ic = 'loo')
-    df_comp.to_csv(dump_dir + 'LOO_comparison.csv')
+    #df_comp = az.compare(traces, ic = 'waic')
+    #df_comp.to_csv(dump_dir + 'WAIC_comparison.csv')
+    #df_comp = az.compare(traces, ic = 'loo')
+    #df_comp.to_csv(dump_dir + 'LOO_comparison.csv')
 
     print("Completed testing covariate combinations!")
     print(f'Minimum deltaBIC is {min(bics - bics[0])} for' +  \
@@ -987,6 +989,8 @@ def make_model(x, ys, yerrs, compars, weight_guess, texp, r_star_prior,
             pm.Normal(f"obs", mu=full_model,
                 sd=np.sqrt(full_variance), observed=ys[0])
         map_soln = model.test_point
+
+        # only one optimization done
         map_soln = pmx.optimize(map_soln)
 
         return model, map_soln
