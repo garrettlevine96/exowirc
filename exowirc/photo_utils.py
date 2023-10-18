@@ -29,7 +29,8 @@ def find_sources(image, fwhm = 20., sigma_threshold = 20.):
 	Returns
 	-------------
 	sources : astropy.Table
-			A Table of the detected sources with xcentroid, ycentroid, and some other auxilliary stats
+			A Table of the detected sources with xcentroid, 
+			ycentroid, and some other auxilliary stats
 	"""
 	bkg_sigma = mad_std(image)
 	daofind = photutils.DAOStarFinder(fwhm = fwhm,
@@ -221,12 +222,15 @@ def gauss(x, *p):
 	return a*np.exp(-(x - b)**2 / (2 * c**2))
 
 def fit_cut(arr, xval, yval):
-	"""Fit a gaussian profile to the star's PSF and then cut the Gaussian profile to calculate the FWHM in function get_aperature_sum().
+	"""Fit a gaussian profile to the star's PSF and then cut the Gaussian 
+	profile to calculate the FWHM in function get_aperature_sum().
 
 	Parameters
 	----------
 	arr : numpy.ndarray
-			A localized 2D numpy image array of pixel brightness around the star. Supports the function make_image_arrs()
+			A localized 2D numpy image array of pixel 
+			brightness around the star.
+			Supports the function make_image_arrs()
 	xval : int
 			x-coordinate
 	yval : int
@@ -306,14 +310,16 @@ def init_data(n_sources, n_images, radii):
 	return xpos_arr, ypos_arr, psf_widths, phot_dict, err_dict
 
 def clean_sources(sources, fwhm, bad_channel = False):
-	"""Cleans (i.e. removes) all sources close to the edge of the detector as well as sources that overlap with the apertures.
+	"""Cleans (i.e. removes) all sources close to the edge of 
+	the detector as well as sources that overlap with the apertures.
 	
 	Parameters
 	------
 	sources : astropy.Table or dict
 			Table of source locations with x and y centroids
 	fwhm : float
-			Approximate FWHM of source PSFs. If sources are less than a FWHM from a detector edge, they'll automatically be removed.
+			Approximate FWHM of source PSFs. If sources are less than a 
+			FWHM from a detector edge, they'll automatically be removed.
 
 	Returns
 	-------
